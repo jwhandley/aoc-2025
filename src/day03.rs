@@ -1,61 +1,59 @@
-use itertools::Itertools;
-
 pub fn part1(input: &str) -> Result<String, anyhow::Error> {
-    let banks = input.lines();
-    let mut total = 0;
-    for bank in banks {
-        let first = bank[..(bank.len() - 1)].chars().max().unwrap();
-        let (idx, _) = bank.chars().find_position(|&c| c == first).unwrap();
-
-        let last = bank[(idx + 1)..].chars().max().unwrap();
-
-        total += first.to_digit(10).unwrap() * 10 + last.to_digit(10).unwrap();
-    }
+    let total = input
+        .lines()
+        .map(|s| s.as_bytes())
+        .map(|bank| solve(bank, 2))
+        .sum::<u64>();
 
     Ok(total.to_string())
 }
 
 pub fn part2(input: &str) -> Result<String, anyhow::Error> {
-    let banks = input.lines();
-    let mut total = 0;
-    for bank in banks {
-        let mut v: u64 = 0;
-        let mut start = 0;
-        for i in 0..12 {
-            let end = bank.len() - 11 + i;
-
-            let first = bank[start..end].chars().max().unwrap();
-            let (idx, _) = bank[start..]
-                .chars()
-                .find_position(|&c| c == first)
-                .unwrap();
-
-            v = v * 10 + first.to_digit(10).unwrap() as u64;
-            start = start + idx + 1;
-        }
-
-        total += v;
-    }
+    let total = input
+        .lines()
+        .map(|s| s.as_bytes())
+        .map(|bank| solve(bank, 12))
+        .sum::<u64>();
 
     Ok(total.to_string())
+}
+
+fn solve(bank: &[u8], n: usize) -> u64 {
+    let (value, _) = (0..n).fold((0, 0), |(v, start), i| {
+        let end = bank.len() - (n - 1) + i;
+
+        let (idx, first) = max_index(&bank[start..end]);
+        let n = (*first - b'0') as u64;
+
+        (v * 10 + n, start + idx + 1)
+    });
+
+    value
+}
+
+fn max_index<T: Ord>(s: &[T]) -> (usize, &T) {
+    let v = s.iter().max().unwrap();
+    let i = s.iter().position(|x| x == v).unwrap();
+
+    (i, v)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    const INPUT: &'static str = include_str!("../samples/03.txt");
+
     #[test]
     fn part1_test() {
-        let input = include_str!("../samples/03.txt");
-        if let Ok(result) = part1(input) {
+        if let Ok(result) = part1(INPUT) {
             assert_eq!(result, "357".to_string());
         }
     }
 
     #[test]
     fn part2_test() {
-        let input = include_str!("../samples/03.txt");
-        if let Ok(result) = part2(input) {
+        if let Ok(result) = part2(INPUT) {
             assert_eq!(result, "3121910778619".to_string());
         }
     }
