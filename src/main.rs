@@ -24,6 +24,7 @@ fn main() -> Result<(), anyhow::Error> {
                     let input = std::fs::read_to_string(format!("./inputs/{:02}.txt", day))
                         .with_context(|| format!("Unable to find input for day {}", day))?;
 
+                    println!("Solving day {day}");
                     let now = std::time::Instant::now();
                     let r1 = part1(&input)?;
                     println!("Part 1: {r1}");
@@ -31,7 +32,8 @@ fn main() -> Result<(), anyhow::Error> {
                     let r2 = part2(&input)?;
                     println!("Part 2: {r2}");
 
-                    println!("Solved in {:?}", now.elapsed());
+                    println!("Solved in {:>10}", format!("{:.02?}", now.elapsed()));
+                    println!("--------------------");
                 }
             }
 
