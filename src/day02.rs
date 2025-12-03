@@ -51,6 +51,10 @@ pub fn part2(input: &str) -> Result<String, anyhow::Error> {
         let length = s.len();
 
         for size in (1..=(length / 2)).rev() {
+            if length % size != 0 {
+                continue;
+            }
+
             if s.as_bytes().chunks(size).all_equal() {
                 return true;
             }
