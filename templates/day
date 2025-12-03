@@ -1,0 +1,15 @@
+pub fn part1(input: &str) -> Result<String, anyhow::Error> {
+    todo!()
+}
+
+pub fn part2(input: &str) -> Result<String, anyhow::Error> {
+    todo!()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn part1_test() {}
+}
