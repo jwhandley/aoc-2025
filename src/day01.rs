@@ -1,11 +1,7 @@
+use anyhow::Context;
+
 pub fn part1(input: &str) -> Result<String, anyhow::Error> {
-    let nums = input.lines().flat_map(|l| {
-        if l.starts_with('R') {
-            l[1..].parse::<i32>()
-        } else {
-            l[1..].parse::<i32>().map(|n| n * -1)
-        }
-    });
+    let nums = parse_input(input);
 
     let (_, count) = nums.fold((50, 0), |(pos, count), amt| {
         let next = (pos + amt).rem_euclid(100);
@@ -16,25 +12,33 @@ pub fn part1(input: &str) -> Result<String, anyhow::Error> {
 }
 
 pub fn part2(input: &str) -> Result<String, anyhow::Error> {
-    let nums = input.lines().flat_map(|l| {
-        if l.starts_with('R') {
-            l[1..].parse::<i32>()
-        } else {
-            l[1..].parse::<i32>().map(|n| n * -1)
-        }
-    });
+    let nums = parse_input(input);
 
     let (_, count) = nums.fold((50, 0), |(pos, count), amt| {
-        let next = (pos + amt).rem_euclid(100);
+        let total = pos + amt;
         let revolutions = (pos + amt).abs() / 100;
 
         (
-            next,
-            count + revolutions + if pos != 0 && (pos + amt) <= 0 { 1 } else { 0 },
+            total.rem_euclid(100),
+            count + revolutions + if pos != 0 && total <= 0 { 1 } else { 0 },
         )
     });
 
     Ok(count.to_string())
+}
+
+fn parse_input(input: &str) -> impl Iterator<Item = i32> {
+    input.lines().flat_map(|l| {
+        if let Some(rest) = l.strip_prefix('R') {
+            rest.parse::<i32>().context("Failed to parse int")
+        } else if let Some(rest) = l.strip_prefix('L') {
+            rest.parse::<i32>()
+                .context("Failed to parse int")
+                .map(|n| -n)
+        } else {
+            anyhow::bail!("Should never reach this")
+        }
+    })
 }
 
 #[cfg(test)]

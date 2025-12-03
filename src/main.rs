@@ -9,7 +9,7 @@ struct Args {
 
 fn main() -> Result<(), anyhow::Error> {
     let args = Args::parse();
-    let input = std::fs::read_to_string(&format!("./inputs/{:02}.txt", args.day))
+    let input = std::fs::read_to_string(format!("./inputs/{:02}.txt", args.day))
         .with_context(|| format!("Unable to find input for day {}", args.day))?;
     let (part1, part2) = solution_for(args.day)?;
 
