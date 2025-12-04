@@ -2,6 +2,17 @@ use std::ops::{Index, IndexMut};
 
 use glam::IVec2;
 
+const ALL_DIRS: [IVec2; 8] = [
+    IVec2::X,
+    IVec2::NEG_X,
+    IVec2::Y,
+    IVec2::NEG_Y,
+    IVec2::ONE,
+    IVec2::NEG_ONE,
+    IVec2::new(-1, 1),
+    IVec2::new(1, -1),
+];
+
 pub struct Grid<T> {
     data: Vec<T>,
     pub width: usize,
@@ -27,10 +38,9 @@ impl<T> IndexMut<IVec2> for Grid<T> {
 impl<T> Grid<T> {
     pub fn parse(input: &str, f: fn(char) -> T) -> Self {
         let lines: Vec<_> = input.lines().collect();
-        let data: Vec<_> = lines.iter().flat_map(|s| s.chars()).map(|c| f(c)).collect();
-
         let height = lines.len();
-        let width = data.len() / height;
+        let width = lines[0].len();
+        let data: Vec<_> = lines.iter().flat_map(|s| s.chars()).map(|c| f(c)).collect();
 
         Grid {
             data,
@@ -50,28 +60,18 @@ impl<T> Grid<T> {
         }
     }
 
-    pub fn neighbors(&self, pos: IVec2, diag: bool) -> impl Iterator<Item = IVec2> {
-        if diag {
-            vec![
-                pos + IVec2::X,
-                pos - IVec2::X,
-                pos + IVec2::Y,
-                pos - IVec2::Y,
-                pos + IVec2::ONE,
-                pos - IVec2::ONE,
-                pos + IVec2::new(-1, 1),
-                pos + IVec2::new(1, -1),
-            ]
-        } else {
-            vec![
-                pos + IVec2::X,
-                pos - IVec2::X,
-                pos + IVec2::Y,
-                pos - IVec2::Y,
-            ]
-        }
-        .into_iter()
-        .filter(|&nbr| self.index(nbr).is_some())
+    pub fn neighbors(&self, pos: IVec2) -> impl Iterator<Item = Option<&T>> {
+        ALL_DIRS
+            .into_iter()
+            .map(move |p| pos + p)
+            .map(|nbr| self.get(nbr))
+    }
+
+    pub fn neighbor_indices(&self, pos: IVec2) -> impl Iterator<Item = IVec2> {
+        ALL_DIRS
+            .into_iter()
+            .map(move |p| pos + p)
+            .filter(|&nbr| self.index(nbr).is_some())
     }
 
     pub fn get(&self, index: IVec2) -> Option<&T> {

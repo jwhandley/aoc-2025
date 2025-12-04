@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use crate::utils::grid::Grid;
 use glam::IVec2;
 
@@ -12,8 +14,8 @@ pub fn part1(input: &str) -> Result<String, anyhow::Error> {
         .filter(|&coord| match grid[coord] {
             Cell::Paper => {
                 let count = grid
-                    .neighbors(coord, true)
-                    .filter(|&p| matches!(grid.get(p), Some(Cell::Paper)))
+                    .neighbors(coord)
+                    .filter(|cell: &Option<&Cell>| matches!(cell, Some(Cell::Paper)))
                     .count();
 
                 count < 4
@@ -31,30 +33,37 @@ pub fn part2(input: &str) -> Result<String, anyhow::Error> {
         _ => Cell::Empty,
     });
 
+    let mut to_remove: Vec<_> = grid
+        .indices()
+        .filter(|&pos| {
+            let count = grid
+                .neighbors(pos)
+                .filter(|&cell| matches!(cell, Some(Cell::Paper)))
+                .count();
+
+            matches!(grid[pos], Cell::Paper) && count < 4
+        })
+        .collect();
+
+    let mut removed = HashSet::new();
     let mut total: usize = 0;
-    loop {
-        let to_remove: Vec<_> = grid
-            .indices()
-            .filter(|&coord| match grid[coord] {
-                Cell::Paper => {
-                    let count = grid
-                        .neighbors(coord, true)
-                        .filter(|&p| matches!(grid.get(p), Some(Cell::Paper)))
-                        .count();
-
-                    count < 4
-                }
-                Cell::Empty => false,
-            })
-            .collect();
-
-        if to_remove.is_empty() {
-            break;
+    while let Some(pos) = to_remove.pop() {
+        if !removed.insert(pos) {
+            continue;
         }
 
-        for coord in to_remove.iter() {
-            grid[*coord] = Cell::Empty;
-            total += 1;
+        grid[pos] = Cell::Empty;
+        total += 1;
+
+        for nbr in grid.neighbor_indices(pos) {
+            let count = grid
+                .neighbors(nbr)
+                .filter(|&cell| matches!(cell, Some(Cell::Paper)))
+                .count();
+
+            if count < 4 && matches!(grid[nbr], Cell::Paper) {
+                to_remove.push(nbr);
+            }
         }
     }
 
