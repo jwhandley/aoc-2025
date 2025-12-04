@@ -22,7 +22,7 @@ fn solve(bank: &[u8], n: usize) -> u64 {
     let (value, _) = (0..n).fold((0, 0), |(v, start), i| {
         let end = bank.len() - (n - 1) + i;
 
-        let (idx, first) = max_index(&bank[start..end]);
+        let (idx, first) = max_index(&bank[start..end]).unwrap();
         let n = (*first - b'0') as u64;
 
         (v * 10 + n, start + idx + 1)
@@ -31,11 +31,10 @@ fn solve(bank: &[u8], n: usize) -> u64 {
     value
 }
 
-fn max_index<T: Ord>(s: &[T]) -> (usize, &T) {
-    let v = s.iter().max().unwrap();
-    let i = s.iter().position(|x| x == v).unwrap();
-
-    (i, v)
+fn max_index<T: Ord>(xs: &[T]) -> Option<(usize, &T)> {
+    xs.iter()
+        .enumerate()
+        .reduce(|acc, next| if next.1 > acc.1 { next } else { acc })
 }
 
 #[cfg(test)]

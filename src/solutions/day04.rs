@@ -1,5 +1,5 @@
 use crate::utils::grid::Grid;
-use glam::Vec2;
+use glam::IVec2;
 
 pub fn part1(input: &str) -> Result<String, anyhow::Error> {
     let grid = Grid::parse(input, |c| match c {
@@ -71,7 +71,7 @@ impl std::fmt::Display for Grid<Cell> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for r in 0..self.height {
             for c in 0..self.width {
-                let idx = Vec2::new(r as f32, c as f32);
+                let idx = IVec2::new(r as i32, c as i32);
                 match &self[idx] {
                     Cell::Paper => write!(f, "@"),
                     Cell::Empty => write!(f, "."),
