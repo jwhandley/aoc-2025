@@ -42,7 +42,7 @@ fn max_index<T: Ord>(s: &[T]) -> (usize, &T) {
 mod tests {
     use super::*;
 
-    const INPUT: &'static str = include_str!("../samples/03.txt");
+    const INPUT: &'static str = include_str!("../../samples/03.txt");
 
     #[test]
     fn part1_test() {

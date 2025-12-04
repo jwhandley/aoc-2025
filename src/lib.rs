@@ -1,7 +1,6 @@
-pub mod day01;
-pub mod day02;
-pub mod day03;
-pub mod day04;
+mod solutions;
+pub mod utils;
+use crate::solutions::*;
 
 pub type Solver = (
     fn(&str) -> Result<String, anyhow::Error>,

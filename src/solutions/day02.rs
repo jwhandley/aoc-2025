@@ -72,7 +72,7 @@ mod tests {
 
     #[test]
     fn part1_test() {
-        let input = include_str!("../samples/02.txt");
+        let input = include_str!("../../samples/02.txt");
 
         if let Ok(result) = part1(input) {
             assert_eq!(result, "1227775554".to_string())
@@ -81,7 +81,7 @@ mod tests {
 
     #[test]
     fn part2_test() {
-        let input = include_str!("../samples/02.txt");
+        let input = include_str!("../../samples/02.txt");
 
         if let Ok(result) = part2(input) {
             assert_eq!(result, "4174379265".to_string())
