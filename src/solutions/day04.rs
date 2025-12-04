@@ -46,14 +46,12 @@ pub fn part2(input: &str) -> Result<String, anyhow::Error> {
         .collect();
 
     let mut removed = HashSet::new();
-    let mut total: usize = 0;
     while let Some(pos) = to_remove.pop() {
         if !removed.insert(pos) {
             continue;
         }
 
         grid[pos] = Cell::Empty;
-        total += 1;
 
         for nbr in grid.neighbor_indices(pos) {
             let count = grid
@@ -67,7 +65,7 @@ pub fn part2(input: &str) -> Result<String, anyhow::Error> {
         }
     }
 
-    Ok(total.to_string())
+    Ok(removed.len().to_string())
 }
 
 #[derive(Debug)]
