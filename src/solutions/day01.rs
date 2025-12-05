@@ -1,16 +1,11 @@
 use anyhow::anyhow;
-use nom::{
-    IResult, Parser,
-    branch::alt,
-    bytes::complete::tag,
-    character::complete::{self, line_ending},
-    multi::separated_list1,
-};
+use chumsky::prelude::*;
 
 pub fn part1(input: &str) -> Result<String, anyhow::Error> {
-    let (_, nums) = directions
+    let nums = directions()
         .parse(input)
-        .map_err(|e| anyhow!("Failed to parse input {e}"))?;
+        .into_result()
+        .map_err(|e| anyhow!("Failed to parse input {e:?}"))?;
 
     let (_, count) = nums.iter().fold((50, 0), |(pos, count), amt| {
         let next = (pos + amt).rem_euclid(100);
@@ -21,9 +16,10 @@ pub fn part1(input: &str) -> Result<String, anyhow::Error> {
 }
 
 pub fn part2(input: &str) -> Result<String, anyhow::Error> {
-    let (_, nums) = directions
+    let nums = directions()
         .parse(input)
-        .map_err(|e| anyhow!("Failed to parse input {e}"))?;
+        .into_result()
+        .map_err(|e| anyhow!("Failed to parse input {e:?}"))?;
 
     let (_, count) = nums.iter().fold((50, 0), |(pos, count), amt| {
         let total = pos + amt;
@@ -38,21 +34,12 @@ pub fn part2(input: &str) -> Result<String, anyhow::Error> {
     Ok(count.to_string())
 }
 
-fn directions(input: &str) -> IResult<&str, Vec<i32>> {
-    separated_list1(line_ending, direction).parse(input)
-}
+fn directions<'src>() -> impl Parser<'src, &'src str, Vec<i32>> {
+    let int32 = text::int(10).map(|v: &str| v.parse::<i32>().unwrap());
+    let left = just('L').ignore_then(int32).map(|v| -v);
+    let right = just('R').ignore_then(int32);
 
-fn direction(input: &str) -> IResult<&str, i32> {
-    let (input, dir) = alt((tag("L"), tag("R"))).parse(input)?;
-    let (input, num) = complete::i32(input)?;
-
-    let d = match dir {
-        "L" => -num,
-        "R" => num,
-        x => panic!("Unknown {x}"),
-    };
-
-    Ok((input, d))
+    left.or(right).separated_by(text::newline()).collect()
 }
 
 #[cfg(test)]

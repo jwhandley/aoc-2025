@@ -1,19 +1,13 @@
+use anyhow::anyhow;
+use chumsky::prelude::*;
+use itertools::Itertools;
 use std::ops::RangeInclusive;
 
-use anyhow::anyhow;
-use itertools::Itertools;
-use nom::{
-    IResult, Parser,
-    bytes::complete::tag,
-    character::complete::{self, char, line_ending},
-    multi::separated_list1,
-    sequence::separated_pair,
-};
-
 pub fn part1(input: &str) -> Result<String, anyhow::Error> {
-    let (_, (ranges, ids)) = parse_input
+    let (ranges, ids) = parse_input()
         .parse(input)
-        .map_err(|e| anyhow!("Failed to parse input {e}"))?;
+        .into_result()
+        .map_err(|e| anyhow!("Failed to parse input {e:?}"))?;
 
     let answer = ids
         .iter()
@@ -24,9 +18,10 @@ pub fn part1(input: &str) -> Result<String, anyhow::Error> {
 }
 
 pub fn part2(input: &str) -> Result<String, anyhow::Error> {
-    let (_, (ranges, _)) = parse_input
+    let (ranges, _) = parse_input()
         .parse(input)
-        .map_err(|e| anyhow!("Failed to parse input {e}"))?;
+        .into_result()
+        .map_err(|e| anyhow!("Failed to parse input {e:?}"))?;
 
     let (_, total) = ranges
         .iter()
@@ -47,16 +42,18 @@ pub fn part2(input: &str) -> Result<String, anyhow::Error> {
     Ok(total.to_string())
 }
 
-fn parse_input(input: &str) -> IResult<&str, (Vec<RangeInclusive<u64>>, Vec<u64>)> {
-    separated_pair(
-        separated_list1(
-            line_ending,
-            separated_pair(complete::u64, char('-'), complete::u64).map(|(start, end)| start..=end),
-        ),
-        tag("\n\n"),
-        separated_list1(line_ending, complete::u64),
-    )
-    .parse(input)
+fn parse_input<'src>() -> impl Parser<'src, &'src str, (Vec<RangeInclusive<u64>>, Vec<u64>)> {
+    let num = text::int(10).map(|v: &str| v.parse::<u64>().unwrap());
+    let ranges = num
+        .then_ignore(just('-'))
+        .then(num)
+        .map(|(start, end)| start..=end)
+        .separated_by(text::newline())
+        .collect();
+
+    let ids = num.separated_by(text::newline()).collect();
+
+    ranges.then_ignore(just("\n\n")).then(ids)
 }
 
 #[cfg(test)]

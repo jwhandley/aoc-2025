@@ -1,18 +1,14 @@
+use anyhow::anyhow;
+use chumsky::prelude::*;
+use itertools::Itertools;
+use rayon::prelude::*;
 use std::ops::RangeInclusive;
 
-use anyhow::anyhow;
-use itertools::Itertools;
-use nom::{
-    IResult, Parser, bytes::complete::tag, character::complete, multi::separated_list1,
-    sequence::separated_pair,
-};
-
-use rayon::prelude::*;
-
 pub fn part1(input: &str) -> Result<String, anyhow::Error> {
-    let (_, ranges) = ranges
+    let ranges = ranges()
         .parse(input)
-        .map_err(|e| anyhow!("Failed to parse input {e}"))?;
+        .into_result()
+        .map_err(|e| anyhow!("Failed to parse input {e:?}"))?;
 
     let ranges = ranges
         .into_par_iter()
@@ -37,7 +33,10 @@ pub fn part1(input: &str) -> Result<String, anyhow::Error> {
 }
 
 pub fn part2(input: &str) -> Result<String, anyhow::Error> {
-    let (_, ranges) = ranges.parse(input).unwrap();
+    let ranges = ranges()
+        .parse(input)
+        .into_result()
+        .map_err(|e| anyhow!("Failed to parse input {e:?}"))?;
 
     let ranges = ranges
         .into_par_iter()
@@ -64,12 +63,15 @@ pub fn part2(input: &str) -> Result<String, anyhow::Error> {
     Ok(ranges.to_string())
 }
 
-fn ranges(input: &str) -> IResult<&str, Vec<RangeInclusive<u64>>> {
-    separated_list1(
-        tag(","),
-        separated_pair(complete::u64, tag("-"), complete::u64).map(|(start, end)| start..=end),
-    )
-    .parse(input)
+fn ranges<'src>() -> impl Parser<'src, &'src str, Vec<RangeInclusive<u64>>> {
+    let uint64 = text::int(10).map(|v: &str| v.parse::<u64>().unwrap());
+
+    let pair = uint64
+        .then_ignore(just('-'))
+        .then(uint64)
+        .map(|(start, end)| start..=end);
+
+    pair.separated_by(just(',')).collect()
 }
 
 #[cfg(test)]
