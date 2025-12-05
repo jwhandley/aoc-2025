@@ -44,23 +44,22 @@ pub fn part2(input: &str) -> Result<String, anyhow::Error> {
         .sum::<u64>();
 
     fn is_invalid_id(n: u64) -> bool {
-        let s = n.to_string();
-        let length = s.len();
-
-        for size in (1..=(length / 2)).rev() {
-            if length % size != 0 {
-                continue;
-            }
-
-            if s.as_bytes().chunks(size).all_equal() {
-                return true;
-            }
-        }
-
-        false
+        let length = n.ilog10() + 1;
+        (1..=(length / 2)).any(|size| length % size == 0 && chunk_number(n, size).all_equal())
     }
 
     Ok(ranges.to_string())
+}
+
+fn chunk_number(n: u64, by: u32) -> impl Iterator<Item = u64> {
+    let divisor = 10u64.pow(by);
+    let total = n.ilog10() / by + 1;
+
+    (0..total).scan(n, move |current, _| {
+        let r = *current % divisor;
+        *current /= divisor;
+        Some(r)
+    })
 }
 
 fn ranges<'src>() -> impl Parser<'src, &'src str, Vec<RangeInclusive<u64>>> {
@@ -92,5 +91,13 @@ mod tests {
 
         assert_eq!(part2(input)?, "4174379265".to_string());
         Ok(())
+    }
+
+    #[test]
+    fn chunk_number_test() {
+        assert_eq!(chunk_number(222, 1).collect::<Vec<_>>(), vec![2, 2, 2]);
+        assert_eq!(chunk_number(2222, 2).collect::<Vec<_>>(), vec![22, 22]);
+        assert_eq!(chunk_number(998, 2).collect::<Vec<_>>(), vec![98, 9]);
+        assert_eq!(chunk_number(11, 1).collect::<Vec<_>>(), vec![1, 1]);
     }
 }
