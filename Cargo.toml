@@ -8,4 +8,5 @@ anyhow = "1.0.100"
 clap = { version = "4.5.53", features = ["derive"] }
 glam = "0.30.9"
 itertools = "0.14.0"
+nom = "8.0.0"
 rayon = "1.11.0"

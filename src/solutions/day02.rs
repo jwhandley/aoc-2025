@@ -1,19 +1,20 @@
+use std::ops::RangeInclusive;
+
 use itertools::Itertools;
+use nom::{
+    IResult, Parser, bytes::complete::tag, character::complete, multi::separated_list1,
+    sequence::separated_pair,
+};
+
 use rayon::prelude::*;
 
 pub fn part1(input: &str) -> Result<String, anyhow::Error> {
-    let ranges: u64 = input
-        .split(',')
-        .map(|p| {
-            let (a, b) = p.split_once('-').unwrap();
-            let a: u64 = a.parse().unwrap();
-            let b: u64 = b.parse().unwrap();
+    let (_, ranges) = ranges.parse(input).unwrap();
 
-            a..=b
-        })
-        .par_bridge()
+    let ranges = ranges
+        .into_par_iter()
         .map(|r| r.filter(|&v| is_invalid_id(v)).sum::<u64>())
-        .sum();
+        .sum::<u64>();
 
     fn is_invalid_id(n: u64) -> bool {
         let length = n.ilog10() + 1;
@@ -33,18 +34,12 @@ pub fn part1(input: &str) -> Result<String, anyhow::Error> {
 }
 
 pub fn part2(input: &str) -> Result<String, anyhow::Error> {
-    let ranges: u64 = input
-        .split(',')
-        .map(|p| {
-            let (a, b) = p.split_once('-').unwrap();
-            let a: u64 = a.parse().unwrap();
-            let b: u64 = b.parse().unwrap();
+    let (_, ranges) = ranges.parse(input).unwrap();
 
-            a..=b
-        })
-        .par_bridge()
+    let ranges = ranges
+        .into_par_iter()
         .map(|r| r.filter(|&v| is_invalid_id(v)).sum::<u64>())
-        .sum();
+        .sum::<u64>();
 
     fn is_invalid_id(n: u64) -> bool {
         let s = n.to_string();
@@ -64,6 +59,14 @@ pub fn part2(input: &str) -> Result<String, anyhow::Error> {
     }
 
     Ok(ranges.to_string())
+}
+
+fn ranges(input: &str) -> IResult<&str, Vec<RangeInclusive<u64>>> {
+    separated_list1(
+        tag(","),
+        separated_pair(complete::u64, tag("-"), complete::u64).map(|(start, end)| start..=end),
+    )
+    .parse(input)
 }
 
 #[cfg(test)]

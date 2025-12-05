@@ -1,9 +1,15 @@
-use anyhow::Context;
+use nom::{
+    IResult, Parser,
+    branch::alt,
+    bytes::complete::tag,
+    character::complete::{self, line_ending},
+    multi::separated_list1,
+};
 
 pub fn part1(input: &str) -> Result<String, anyhow::Error> {
-    let nums = parse_input(input);
+    let (_, nums) = directions.parse(input).unwrap();
 
-    let (_, count) = nums.fold((50, 0), |(pos, count), amt| {
+    let (_, count) = nums.iter().fold((50, 0), |(pos, count), amt| {
         let next = (pos + amt).rem_euclid(100);
         (next, count + if next == 0 { 1 } else { 0 })
     });
@@ -12,9 +18,9 @@ pub fn part1(input: &str) -> Result<String, anyhow::Error> {
 }
 
 pub fn part2(input: &str) -> Result<String, anyhow::Error> {
-    let nums = parse_input(input);
+    let (_, nums) = directions.parse(input).unwrap();
 
-    let (_, count) = nums.fold((50, 0), |(pos, count), amt| {
+    let (_, count) = nums.iter().fold((50, 0), |(pos, count), amt| {
         let total = pos + amt;
         let revolutions = (pos + amt).abs() / 100;
 
@@ -27,18 +33,21 @@ pub fn part2(input: &str) -> Result<String, anyhow::Error> {
     Ok(count.to_string())
 }
 
-fn parse_input(input: &str) -> impl Iterator<Item = i32> {
-    input.lines().flat_map(|l| {
-        if let Some(rest) = l.strip_prefix('R') {
-            rest.parse::<i32>().context("Failed to parse int")
-        } else if let Some(rest) = l.strip_prefix('L') {
-            rest.parse::<i32>()
-                .context("Failed to parse int")
-                .map(|n| -n)
-        } else {
-            anyhow::bail!("Should never reach this")
-        }
-    })
+fn directions(input: &str) -> IResult<&str, Vec<i32>> {
+    separated_list1(line_ending, direction).parse(input)
+}
+
+fn direction(input: &str) -> IResult<&str, i32> {
+    let (input, dir) = alt((tag("L"), tag("R"))).parse(input)?;
+    let (input, num) = complete::i32(input)?;
+
+    let d = match dir {
+        "L" => -num,
+        "R" => num,
+        x => panic!("Unknown {x}"),
+    };
+
+    Ok((input, d))
 }
 
 #[cfg(test)]

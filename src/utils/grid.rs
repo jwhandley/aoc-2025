@@ -40,7 +40,7 @@ impl<T> Grid<T> {
         let lines: Vec<_> = input.lines().collect();
         let height = lines.len();
         let width = lines[0].len();
-        let data: Vec<_> = lines.iter().flat_map(|s| s.chars()).map(|c| f(c)).collect();
+        let data: Vec<_> = lines.iter().flat_map(|s| s.chars()).map(f).collect();
 
         Grid {
             data,
@@ -50,8 +50,8 @@ impl<T> Grid<T> {
     }
 
     fn index(&self, i: IVec2) -> Option<usize> {
-        let row = i.x as i32;
-        let col = i.y as i32;
+        let row = i.x;
+        let col = i.y;
 
         if col < 0 || col >= self.width as i32 || row < 0 || row >= self.height as i32 {
             None

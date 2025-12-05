@@ -21,8 +21,8 @@ fn main() -> Result<(), anyhow::Error> {
         Action::All => {
             for day in 1..=25 {
                 if let Ok((part1, part2)) = solution_for(day) {
-                    let input = std::fs::read_to_string(format!("./inputs/{:02}.txt", day))
-                        .with_context(|| format!("Unable to find input for day {}", day))?;
+                    let input = std::fs::read_to_string(format!("./inputs/{day:02}.txt"))
+                        .with_context(|| format!("Unable to find input for day {day}"))?;
 
                     println!("Solving day {day}");
                     let now = std::time::Instant::now();
@@ -43,8 +43,8 @@ fn main() -> Result<(), anyhow::Error> {
 }
 
 fn solve_day(day: u32) -> Result<(), anyhow::Error> {
-    let input = std::fs::read_to_string(format!("./inputs/{:02}.txt", day))
-        .with_context(|| format!("Unable to find input for day {}", day))?;
+    let input = std::fs::read_to_string(format!("./inputs/{day:02}.txt"))
+        .with_context(|| format!("Unable to find input for day {day}"))?;
     let (part1, part2) = solution_for(day)?;
 
     let now = std::time::Instant::now();
