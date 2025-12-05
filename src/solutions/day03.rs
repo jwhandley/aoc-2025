@@ -44,16 +44,14 @@ mod tests {
     const INPUT: &'static str = include_str!("../../samples/03.txt");
 
     #[test]
-    fn part1_test() {
-        if let Ok(result) = part1(INPUT) {
-            assert_eq!(result, "357".to_string());
-        }
+    fn part1_test() -> anyhow::Result<()> {
+        assert_eq!(part1(INPUT)?, "357".to_string());
+        Ok(())
     }
 
     #[test]
-    fn part2_test() {
-        if let Ok(result) = part2(INPUT) {
-            assert_eq!(result, "3121910778619".to_string());
-        }
+    fn part2_test() -> anyhow::Result<()> {
+        assert_eq!(part2(INPUT)?, "3121910778619".to_string());
+        Ok(())
     }
 }

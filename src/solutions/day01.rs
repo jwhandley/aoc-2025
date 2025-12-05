@@ -1,3 +1,4 @@
+use anyhow::anyhow;
 use nom::{
     IResult, Parser,
     branch::alt,
@@ -7,7 +8,9 @@ use nom::{
 };
 
 pub fn part1(input: &str) -> Result<String, anyhow::Error> {
-    let (_, nums) = directions.parse(input).unwrap();
+    let (_, nums) = directions
+        .parse(input)
+        .map_err(|e| anyhow!("Failed to parse input {e}"))?;
 
     let (_, count) = nums.iter().fold((50, 0), |(pos, count), amt| {
         let next = (pos + amt).rem_euclid(100);
@@ -18,7 +21,9 @@ pub fn part1(input: &str) -> Result<String, anyhow::Error> {
 }
 
 pub fn part2(input: &str) -> Result<String, anyhow::Error> {
-    let (_, nums) = directions.parse(input).unwrap();
+    let (_, nums) = directions
+        .parse(input)
+        .map_err(|e| anyhow!("Failed to parse input {e}"))?;
 
     let (_, count) = nums.iter().fold((50, 0), |(pos, count), amt| {
         let total = pos + amt;
@@ -55,7 +60,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn part1_test() {
+    fn part1_test() -> anyhow::Result<()> {
         let input = "L68
 L30
 R48
@@ -67,13 +72,12 @@ L99
 R14
 L82";
 
-        if let Ok(r) = part1(input) {
-            assert_eq!(r, "3".to_string());
-        }
+        assert_eq!(part1(input)?, "3".to_string());
+        Ok(())
     }
 
     #[test]
-    fn part2_test() {
+    fn part2_test() -> anyhow::Result<()> {
         let input = "L68
 L30
 R48
@@ -85,8 +89,7 @@ L99
 R14
 L82";
 
-        if let Ok(r) = part2(input) {
-            assert_eq!(r, "6".to_string());
-        }
+        assert_eq!(part2(input)?, "6".to_string());
+        Ok(())
     }
 }

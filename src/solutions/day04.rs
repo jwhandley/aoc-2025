@@ -1,7 +1,5 @@
-use std::collections::HashSet;
-
 use crate::utils::grid::Grid;
-use glam::IVec2;
+use std::collections::HashSet;
 
 pub fn part1(input: &str) -> Result<String, anyhow::Error> {
     let grid = Grid::parse(input, |c| match c {
@@ -74,43 +72,22 @@ enum Cell {
     Empty,
 }
 
-impl std::fmt::Display for Grid<Cell> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        for r in 0..self.height {
-            for c in 0..self.width {
-                let idx = IVec2::new(r as i32, c as i32);
-                match &self[idx] {
-                    Cell::Paper => write!(f, "@"),
-                    Cell::Empty => write!(f, "."),
-                }?
-            }
-
-            writeln!(f)?;
-        }
-
-        Ok(())
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn part1_test() {
+    fn part1_test() -> anyhow::Result<()> {
         let input = include_str!("../../samples/04.txt");
-
-        if let Ok(result) = part1(input) {
-            assert_eq!(result, "13".to_string());
-        }
+        assert_eq!(part1(input)?, "13".to_string());
+        Ok(())
     }
 
     #[test]
-    fn part2_test() {
+    fn part2_test() -> anyhow::Result<()> {
         let input = include_str!("../../samples/04.txt");
 
-        if let Ok(result) = part2(input) {
-            assert_eq!(result, "43".to_string());
-        }
+        assert_eq!(part2(input)?, "43".to_string());
+        Ok(())
     }
 }

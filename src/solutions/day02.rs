@@ -1,5 +1,6 @@
 use std::ops::RangeInclusive;
 
+use anyhow::anyhow;
 use itertools::Itertools;
 use nom::{
     IResult, Parser, bytes::complete::tag, character::complete, multi::separated_list1,
@@ -9,7 +10,9 @@ use nom::{
 use rayon::prelude::*;
 
 pub fn part1(input: &str) -> Result<String, anyhow::Error> {
-    let (_, ranges) = ranges.parse(input).unwrap();
+    let (_, ranges) = ranges
+        .parse(input)
+        .map_err(|e| anyhow!("Failed to parse input {e}"))?;
 
     let ranges = ranges
         .into_par_iter()
@@ -74,20 +77,18 @@ mod tests {
     use super::*;
 
     #[test]
-    fn part1_test() {
+    fn part1_test() -> anyhow::Result<()> {
         let input = include_str!("../../samples/02.txt");
 
-        if let Ok(result) = part1(input) {
-            assert_eq!(result, "1227775554".to_string())
-        }
+        assert_eq!(part1(input)?, "1227775554".to_string());
+        Ok(())
     }
 
     #[test]
-    fn part2_test() {
+    fn part2_test() -> anyhow::Result<()> {
         let input = include_str!("../../samples/02.txt");
 
-        if let Ok(result) = part2(input) {
-            assert_eq!(result, "4174379265".to_string())
-        }
+        assert_eq!(part2(input)?, "4174379265".to_string());
+        Ok(())
     }
 }
