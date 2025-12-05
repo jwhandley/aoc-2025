@@ -13,6 +13,7 @@ pub fn solution_for(day: u32) -> Result<Solver, anyhow::Error> {
         2 => Ok((day02::part1, day02::part2)),
         3 => Ok((day03::part1, day03::part2)),
         4 => Ok((day04::part1, day04::part2)),
+        5 => Ok((day05::part1, day05::part2)),
         _ => anyhow::bail!("No solution found for day {day}"),
     }
 }
