@@ -13,10 +13,9 @@ pub fn part1(input: &str) -> Result<String, anyhow::Error> {
         })
         .collect();
 
-    let ids: Vec<_> = b.lines().flat_map(|s| s.parse::<u64>()).collect();
+    let ids = b.lines().flat_map(|s| s.parse::<u64>());
 
     let answer = ids
-        .iter()
         .filter(|id| ranges.iter().any(|r| r.contains(id)))
         .count();
 
@@ -25,7 +24,7 @@ pub fn part1(input: &str) -> Result<String, anyhow::Error> {
 
 pub fn part2(input: &str) -> Result<String, anyhow::Error> {
     let (a, _) = input.split_once("\n\n").unwrap();
-    let mut ranges: Vec<_> = a
+    let mut ranges = a
         .lines()
         .map(|s| {
             let (a, b) = s.split_once('-').unwrap();
@@ -34,14 +33,12 @@ pub fn part2(input: &str) -> Result<String, anyhow::Error> {
 
             a..=b
         })
-        .collect();
-
-    ranges.sort_unstable_by_key(|r| *r.start());
+        .sorted_by_key(|r| *r.start());
 
     let mut total: usize = 0;
-    let mut current = ranges[0].clone();
+    let mut current = ranges.next().unwrap();
 
-    for range in ranges.iter().skip(1) {
+    for range in ranges {
         if current.contains(range.start()) && range.end() > current.end() {
             current = *current.start()..=*range.end();
         } else if !current.contains(range.start()) {
