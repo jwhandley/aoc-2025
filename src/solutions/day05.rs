@@ -23,8 +23,8 @@ pub fn part1(input: &str) -> Result<String, anyhow::Error> {
 }
 
 pub fn part2(input: &str) -> Result<String, anyhow::Error> {
-    let (a, _) = input.split_once("\n\n").unwrap();
-    let mut ranges = a
+    let (ranges, _) = input.split_once("\n\n").unwrap();
+    let (_, total) = ranges
         .lines()
         .map(|s| {
             let (a, b) = s.split_once('-').unwrap();
@@ -33,21 +33,19 @@ pub fn part2(input: &str) -> Result<String, anyhow::Error> {
 
             a..=b
         })
-        .sorted_by_key(|r| *r.start());
-
-    let mut total: usize = 0;
-    let mut current = ranges.next().unwrap();
-
-    for range in ranges {
-        if current.contains(range.start()) && range.end() > current.end() {
-            current = *current.start()..=*range.end();
-        } else if !current.contains(range.start()) {
-            total += current.try_len().unwrap();
-            current = range.clone();
-        }
-    }
-
-    total += current.try_len().unwrap();
+        .sorted_by_key(|r| *r.start())
+        .map(|r| (r.clone(), r.try_len().unwrap()))
+        .reduce(
+            |(current, total), (range, length)| match current.contains(range.start()) {
+                true if range.end() > current.end() => (
+                    *current.start()..=*range.end(),
+                    total + range.end() - current.end(),
+                ),
+                false => (range, total + length),
+                _ => (current, total),
+            },
+        )
+        .unwrap();
 
     Ok(total.to_string())
 }
