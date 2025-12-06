@@ -25,9 +25,8 @@ pub fn part1(input: &str) -> Result<String, anyhow::Error> {
 
     let result: u64 = nums
         .iter()
-        .enumerate()
-        .filter_map(|(i, xs)| {
-            let op = &instructions[i];
+        .zip(instructions.iter())
+        .filter_map(|(xs, op)| {
             xs.iter().copied().reduce(|acc, next| match op {
                 Op::Add => acc + next,
                 Op::Mul => acc * next,
@@ -40,7 +39,8 @@ pub fn part1(input: &str) -> Result<String, anyhow::Error> {
 
 pub fn part2(input: &str) -> Result<String, anyhow::Error> {
     let lines: Vec<_> = input.lines().collect();
-    let instructions: Vec<_> = lines[lines.len() - 1]
+
+    let ops: Vec<_> = lines[lines.len() - 1]
         .split_ascii_whitespace()
         .map(|c| match c {
             "+" => Op::Add,
@@ -54,8 +54,8 @@ pub fn part2(input: &str) -> Result<String, anyhow::Error> {
         .map(|l| l.chars().collect())
         .collect();
 
-    let t = transpose(v);
-    let t: Vec<_> = t
+    let nums = transpose(v);
+    let t: Vec<_> = nums
         .iter()
         .map(|c| c.iter().collect::<String>().trim().to_string())
         .map(|s| s.parse::<u64>())
@@ -67,9 +67,8 @@ pub fn part2(input: &str) -> Result<String, anyhow::Error> {
 
     let result: u64 = t
         .iter()
-        .enumerate()
-        .filter_map(|(i, xs)| {
-            let op = &instructions[i];
+        .zip(ops.iter())
+        .filter_map(|(xs, op)| {
             xs.iter().copied().reduce(|acc, next| match op {
                 Op::Add => acc + next,
                 Op::Mul => acc * next,
