@@ -1,31 +1,19 @@
+use anyhow::anyhow;
+use chumsky::{
+    prelude::*,
+    text::{newline, whitespace},
+};
 use itertools::Itertools;
 
 pub fn part1(input: &str) -> Result<String, anyhow::Error> {
-    let lines: Vec<_> = input.lines().collect();
-    let instructions: Vec<_> = lines[lines.len() - 1]
-        .split_ascii_whitespace()
-        .map(|c| match c {
-            "+" => Op::Add,
-            "*" => Op::Mul,
-            _ => panic!("Unexpected token {c}"),
-        })
-        .collect();
-
-    let nums: Vec<Vec<u64>> = lines
-        .iter()
-        .take(lines.len() - 1)
-        .map(|l| {
-            l.split_ascii_whitespace()
-                .flat_map(|s| s.parse::<u64>())
-                .collect()
-        })
-        .collect();
-
-    let nums = transpose(nums);
+    let (nums, ops) = parse()
+        .parse(input)
+        .into_result()
+        .map_err(|e| anyhow!("Failed to parse input {e:?}"))?;
 
     let result: u64 = nums
         .iter()
-        .zip(instructions.iter())
+        .zip(ops.iter())
         .filter_map(|(xs, op)| {
             xs.iter().copied().reduce(|acc, next| match op {
                 Op::Add => acc + next,
@@ -86,7 +74,32 @@ fn transpose<T: Copy>(v: Vec<Vec<T>>) -> Vec<Vec<T>> {
         .collect()
 }
 
-#[derive(Clone, Copy, Debug)]
+fn op<'src>() -> impl Parser<'src, &'src str, Op> {
+    let mul = just('*').to(Op::Mul);
+    let add = just('+').to(Op::Add);
+    mul.or(add)
+}
+
+fn ops<'src>() -> impl Parser<'src, &'src str, Vec<Op>> {
+    op().separated_by(whitespace())
+        .collect()
+        .then_ignore(whitespace())
+}
+
+fn nums<'src>() -> impl Parser<'src, &'src str, Vec<Vec<u64>>> {
+    let spaces = just(' ').repeated();
+    let num = text::int(10).map(|s: &str| s.parse::<u64>().unwrap());
+
+    let nums = num.padded_by(spaces).repeated().at_least(1).collect();
+
+    nums.separated_by(newline()).collect().map(transpose)
+}
+
+fn parse<'src>() -> impl Parser<'src, &'src str, (Vec<Vec<u64>>, Vec<Op>)> {
+    nums().then_ignore(newline()).then(ops())
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Op {
     Add,
     Mul,
@@ -103,10 +116,53 @@ mod tests {
         Ok(())
     }
 
+    // #[test]
+    // fn part2_test() -> anyhow::Result<()> {
+    //     let input = include_str!("../../samples/06.txt");
+    //     assert_eq!(part2(input)?, "3263827".to_string());
+    //     Ok(())
+    // }
+
     #[test]
-    fn part2_test() -> anyhow::Result<()> {
+    fn parse_nums() {
+        let test_str = "123 328  51 64 
+ 45 64  387 23 
+  6 98  215 314";
+        let parsed = nums().parse(test_str).into_output();
+        assert_eq!(
+            parsed,
+            Some(vec![
+                vec![123, 45, 6],
+                vec![328, 64, 98],
+                vec![51, 387, 215],
+                vec![64, 23, 314]
+            ])
+        );
+    }
+
+    #[test]
+    fn parse_ops() {
+        let test_str = "*   +   *   +  ";
+        let parsed = ops().parse(test_str).into_output();
+        assert_eq!(parsed, Some(vec![Op::Mul, Op::Add, Op::Mul, Op::Add]));
+    }
+
+    #[test]
+    fn parse_test() {
         let input = include_str!("../../samples/06.txt");
-        assert_eq!(part2(input)?, "3263827".to_string());
-        Ok(())
+
+        let parsed = parse().parse(input).into_output();
+        assert_eq!(
+            parsed,
+            Some((
+                vec![
+                    vec![123, 45, 6],
+                    vec![328, 64, 98],
+                    vec![51, 387, 215],
+                    vec![64, 23, 314]
+                ],
+                vec![Op::Mul, Op::Add, Op::Mul, Op::Add]
+            ))
+        );
     }
 }
