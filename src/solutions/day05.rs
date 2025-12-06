@@ -26,12 +26,12 @@ pub fn part2(input: &str) -> Result<String, anyhow::Error> {
     let (_, total) = ranges
         .iter()
         .sorted_by_key(|r| *r.start())
-        .map(|r| (r.clone(), r.try_len().unwrap()))
+        .map(|r| (r.clone(), r.end() - r.start()))
         .reduce(
             |(current, total), (range, length)| match current.contains(range.start()) {
                 true if range.end() > current.end() => (
                     *current.start()..=*range.end(),
-                    total + *range.end() as usize - *current.end() as usize,
+                    total + *range.end() - *current.end(),
                 ),
                 false => (range, total + length),
                 _ => (current, total),
