@@ -57,7 +57,7 @@ pub fn part2(input: &str) -> Result<String, anyhow::Error> {
     let nums = transpose(v);
     let t: Vec<_> = nums
         .iter()
-        .map(|c| c.iter().collect::<String>().trim().to_string())
+        .map(|c| c.iter().filter(|c| !c.is_whitespace()).collect::<String>())
         .map(|s| s.parse::<u64>())
         .chunk_by(|n| n.is_err())
         .into_iter()
