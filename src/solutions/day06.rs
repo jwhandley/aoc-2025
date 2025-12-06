@@ -28,7 +28,7 @@ pub fn part1(input: &str) -> Result<String, anyhow::Error> {
         .enumerate()
         .filter_map(|(i, xs)| {
             let op = &instructions[i];
-            xs.into_iter().copied().reduce(|acc, next| match op {
+            xs.iter().copied().reduce(|acc, next| match op {
                 Op::Add => acc + next,
                 Op::Mul => acc * next,
             })
@@ -54,7 +54,7 @@ pub fn part2(input: &str) -> Result<String, anyhow::Error> {
         .map(|l| l.chars().collect())
         .collect();
 
-    let t = transpose(v.clone());
+    let t = transpose(v);
     let t: Vec<_> = t
         .iter()
         .map(|c| c.iter().collect::<String>().trim().to_string())
@@ -70,7 +70,7 @@ pub fn part2(input: &str) -> Result<String, anyhow::Error> {
         .enumerate()
         .filter_map(|(i, xs)| {
             let op = &instructions[i];
-            xs.into_iter().copied().reduce(|acc, next| match op {
+            xs.iter().copied().reduce(|acc, next| match op {
                 Op::Add => acc + next,
                 Op::Mul => acc * next,
             })
