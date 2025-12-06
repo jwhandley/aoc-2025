@@ -14,11 +14,9 @@ pub fn part1(input: &str) -> Result<String, anyhow::Error> {
     let result: u64 = nums
         .iter()
         .zip(ops.iter())
-        .filter_map(|(xs, op)| {
-            xs.iter().copied().reduce(|acc, next| match op {
-                Op::Add => acc + next,
-                Op::Mul => acc * next,
-            })
+        .map(|(xs, op)| match op {
+            Op::Add => xs.iter().copied().sum::<u64>(),
+            Op::Mul => xs.iter().copied().product::<u64>(),
         })
         .sum();
 
@@ -56,11 +54,9 @@ pub fn part2(input: &str) -> Result<String, anyhow::Error> {
     let result: u64 = t
         .iter()
         .zip(ops.iter())
-        .filter_map(|(xs, op)| {
-            xs.iter().copied().reduce(|acc, next| match op {
-                Op::Add => acc + next,
-                Op::Mul => acc * next,
-            })
+        .map(|(xs, op)| match op {
+            Op::Add => xs.iter().copied().sum::<u64>(),
+            Op::Mul => xs.iter().copied().product::<u64>(),
         })
         .sum();
 
