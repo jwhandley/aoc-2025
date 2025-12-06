@@ -1,7 +1,7 @@
 use anyhow::anyhow;
 use chumsky::{
     prelude::*,
-    text::{newline, whitespace},
+    text::{inline_whitespace, newline, whitespace},
 };
 use itertools::Itertools;
 
@@ -25,33 +25,23 @@ pub fn part1(input: &str) -> Result<String, anyhow::Error> {
 
 pub fn part2(input: &str) -> Result<String, anyhow::Error> {
     let lines: Vec<_> = input.lines().collect();
+    let (last, rest) = lines.split_last().unwrap();
+    let t = transpose_str(&rest.join("\n"));
 
-    let ops: Vec<_> = lines[lines.len() - 1]
-        .split_ascii_whitespace()
-        .map(|c| match c {
-            "+" => Op::Add,
-            "*" => Op::Mul,
-            _ => panic!("Unexpected token {c}"),
-        })
+    let nums: Vec<Vec<u64>> = t
+        .lines()
+        .map(str::trim)
+        .collect::<Vec<_>>()
+        .split(|line| line.is_empty())
+        .map(|chunk| chunk.iter().flat_map(|s| s.parse::<u64>()).collect())
         .collect();
 
-    let v: Vec<Vec<_>> = lines[..lines.len() - 1]
-        .iter()
-        .map(|l| l.chars().collect())
-        .collect();
+    let ops: Vec<_> = ops()
+        .parse(last)
+        .into_result()
+        .map_err(|e| anyhow!("Failed to parse ops {e:?}"))?;
 
-    let nums = transpose(v);
-    let t: Vec<_> = nums
-        .iter()
-        .map(|c| c.iter().filter(|c| !c.is_whitespace()).collect::<String>())
-        .map(|s| s.parse::<u64>())
-        .chunk_by(|n| n.is_err())
-        .into_iter()
-        .filter(|g| !g.0)
-        .map(|g| g.1.map(|x| x.unwrap()).collect_vec())
-        .collect();
-
-    let result: u64 = t
+    let result: u64 = nums
         .iter()
         .zip(ops.iter())
         .map(|(xs, op)| match op {
@@ -70,6 +60,14 @@ fn transpose<T: Copy>(v: Vec<Vec<T>>) -> Vec<Vec<T>> {
         .collect()
 }
 
+fn transpose_str(s: &str) -> String {
+    let lines: Vec<Vec<_>> = s.lines().map(|l| l.chars().collect()).collect();
+
+    (0..lines[0].len())
+        .map(|i| lines.iter().map(|l| l[i]).collect::<String>())
+        .join("\n")
+}
+
 fn op<'src>() -> impl Parser<'src, &'src str, Op> {
     let mul = just('*').to(Op::Mul);
     let add = just('+').to(Op::Add);
@@ -83,10 +81,13 @@ fn ops<'src>() -> impl Parser<'src, &'src str, Vec<Op>> {
 }
 
 fn nums<'src>() -> impl Parser<'src, &'src str, Vec<Vec<u64>>> {
-    let spaces = just(' ').repeated();
     let num = text::int(10).map(|s: &str| s.parse::<u64>().unwrap());
 
-    let nums = num.padded_by(spaces).repeated().at_least(1).collect();
+    let nums = num
+        .padded_by(inline_whitespace())
+        .repeated()
+        .at_least(1)
+        .collect();
 
     nums.separated_by(newline()).collect().map(transpose)
 }
@@ -112,12 +113,12 @@ mod tests {
         Ok(())
     }
 
-    // #[test]
-    // fn part2_test() -> anyhow::Result<()> {
-    //     let input = include_str!("../../samples/06.txt");
-    //     assert_eq!(part2(input)?, "3263827".to_string());
-    //     Ok(())
-    // }
+    #[test]
+    fn part2_test() -> anyhow::Result<()> {
+        let input = include_str!("../../samples/06.txt");
+        assert_eq!(part2(input)?, "3263827".to_string());
+        Ok(())
+    }
 
     #[test]
     fn parse_nums() {
