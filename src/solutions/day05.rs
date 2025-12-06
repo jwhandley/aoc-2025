@@ -26,7 +26,7 @@ pub fn part2(input: &str) -> Result<String, anyhow::Error> {
     let (_, total) = ranges
         .iter()
         .sorted_by_key(|r| *r.start())
-        .map(|r| (r.clone(), r.end() - r.start()))
+        .map(|r| (r.clone(), r.end() - r.start() + 1))
         .reduce(
             |(current, total), (range, length)| match current.contains(range.start()) {
                 true if range.end() > current.end() => (
