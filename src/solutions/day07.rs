@@ -2,21 +2,7 @@ use glam::IVec2;
 use std::collections::{HashMap, HashSet, VecDeque};
 
 pub fn part1(input: &str) -> Result<String, anyhow::Error> {
-    let mut height = 0;
-    let mut start = IVec2::ZERO;
-    let mut splitters = HashSet::new();
-    for (r, line) in input.lines().enumerate() {
-        for (c, val) in line.char_indices() {
-            if val == 'S' {
-                start = IVec2::new(r as i32, c as i32);
-            }
-
-            if val == '^' {
-                splitters.insert(IVec2::new(r as i32, c as i32));
-            }
-        }
-        height += 1;
-    }
+    let (start, height, splitters) = parse_input(input);
 
     let mut q = VecDeque::new();
     let mut seen = HashSet::new();
@@ -41,6 +27,14 @@ pub fn part1(input: &str) -> Result<String, anyhow::Error> {
 }
 
 pub fn part2(input: &str) -> Result<String, anyhow::Error> {
+    let (start, height, splitters) = parse_input(input);
+
+    let mut cache = HashMap::new();
+    let total = solve(start, &splitters, height, &mut cache);
+    Ok(total.to_string())
+}
+
+fn parse_input(input: &str) -> (IVec2, i32, HashSet<IVec2>) {
     let mut height = 0;
     let mut start = IVec2::ZERO;
     let mut splitters = HashSet::new();
@@ -57,9 +51,7 @@ pub fn part2(input: &str) -> Result<String, anyhow::Error> {
         height += 1;
     }
 
-    let mut cache = HashMap::new();
-    let total = solve(start, &splitters, height, &mut cache);
-    Ok(total.to_string())
+    (start, height, splitters)
 }
 
 fn solve(
