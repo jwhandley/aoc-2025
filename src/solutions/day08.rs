@@ -1,10 +1,6 @@
 use chumsky::{prelude::*, text::newline};
 use glam::I64Vec3;
 use itertools::Itertools;
-use std::{
-    collections::{HashMap, HashSet, VecDeque},
-    hash::Hash,
-};
 
 pub fn part1(input: &str) -> Result<String, anyhow::Error> {
     solve1(input, 1000).map(|n| n.to_string())
@@ -16,20 +12,21 @@ fn solve1(input: &str, n: usize) -> Result<usize, anyhow::Error> {
         .into_result()
         .map_err(|e| anyhow::anyhow!("Unable to parse input {e:?}"))?;
 
-    let edges: Vec<_> = boxes
+    let mut uf = UnionFind::with_size(boxes.len());
+
+    boxes
         .iter()
-        .copied()
+        .enumerate()
         .tuple_combinations()
-        .sorted_by_key(|&(a, b)| a.distance_squared(b))
+        .sorted_by_key(|&((_, a), (_, b))| a.distance_squared(*b))
         .take(n)
-        .collect();
+        .for_each(|((i, _), (j, _))| {
+            uf.union(i, j);
+        });
 
-    let g = Graph::from_slice(&edges);
-
-    let result = g
-        .connected_components()
+    let result = uf
+        .sizes
         .iter()
-        .map(|g| g.len())
         .sorted_by(|a, b| b.cmp(a))
         .take(3)
         .product::<usize>();
@@ -43,97 +40,71 @@ pub fn part2(input: &str) -> Result<String, anyhow::Error> {
         .into_result()
         .map_err(|e| anyhow::anyhow!("Unable to parse input {e:?}"))?;
 
-    let edges: Vec<_> = boxes
+    let mut uf = UnionFind::with_size(boxes.len());
+
+    let result = boxes
         .iter()
-        .copied()
+        .enumerate()
         .tuple_combinations()
-        .sorted_by_key(|&(a, b)| a.distance_squared(b))
-        .collect();
+        .sorted_by_key(|&((_, a), (_, b))| a.distance_squared(*b))
+        .find(|&((i, _), (j, _))| {
+            uf.union(i, j);
+            uf.is_connected()
+        })
+        .map(|((_, a), (_, b))| a.x * b.x)
+        .unwrap();
 
-    let mut circuits: Vec<HashSet<I64Vec3>> = boxes.iter().map(|&b| HashSet::from([b])).collect();
-
-    for &(a, b) in edges.iter() {
-        let (inside, mut outside): (Vec<_>, Vec<_>) = circuits
-            .into_iter()
-            .partition(|c| c.contains(&a) || c.contains(&b));
-
-        if outside.is_empty() {
-            return Ok((a.x * b.x).to_string());
-        }
-
-        let new_circuit: HashSet<I64Vec3> =
-            inside.iter().fold(HashSet::from([a, b]), |acc, next| {
-                acc.union(next).copied().collect()
-            });
-
-        outside.push(new_circuit);
-        circuits = outside;
-    }
-
-    anyhow::bail!("Couldn't find answer")
+    Ok(result.to_string())
 }
 
-type NodeId = usize;
-#[derive(Default, Debug)]
-struct Graph {
-    adj: Vec<HashSet<NodeId>>,
+struct UnionFind {
+    parents: Vec<usize>,
+    sizes: Vec<usize>,
+    size: usize,
 }
 
-impl Graph {
-    fn add_node(&mut self) -> NodeId {
-        let id = self.adj.len();
-        self.adj.push(HashSet::new());
-        id
+impl UnionFind {
+    fn with_size(size: usize) -> Self {
+        Self {
+            parents: (0..size).collect(),
+            sizes: vec![1; size],
+            size,
+        }
     }
 
-    fn add_edge(&mut self, from: NodeId, to: NodeId) {
-        self.adj[from].insert(to);
-        self.adj[to].insert(from);
+    fn is_connected(&self) -> bool {
+        self.sizes.iter().any(|&s| s == self.size)
     }
 
-    fn from_slice<N: Eq + Hash>(edges: &[(N, N)]) -> Self {
-        let mut g = Self::default();
+    fn find(&mut self, i: usize) -> usize {
+        let root = self.parents[i];
 
-        let mut id_map = HashMap::new();
-        for (from, to) in edges.iter() {
-            let from_id = *id_map.entry(from).or_insert_with(|| g.add_node());
-            let to_id = *id_map.entry(to).or_insert_with(|| g.add_node());
-            g.add_edge(from_id, to_id);
+        if self.parents[root] != root {
+            self.parents[i] = self.find(root);
+            self.parents[i]
+        } else {
+            root
+        }
+    }
+
+    fn union(&mut self, i: usize, j: usize) {
+        let i_rep = self.find(i);
+        let j_rep = self.find(j);
+
+        if i_rep == j_rep {
+            return;
         }
 
-        g
-    }
+        let i_size = self.sizes[i_rep];
+        let j_size = self.sizes[j_rep];
 
-    fn connected_components(&self) -> Vec<Vec<NodeId>> {
-        let mut map: HashMap<NodeId, usize> = HashMap::new();
-        let mut current = 0;
-        for start_node in 0..self.adj.len() {
-            if map.contains_key(&start_node) {
-                continue;
-            }
-
-            let mut q = VecDeque::new();
-            q.push_back(start_node);
-
-            while let Some(node) = q.pop_front() {
-                if map.contains_key(&node) {
-                    continue;
-                }
-
-                map.insert(node, current);
-
-                for &nbr in self.adj[node].iter() {
-                    q.push_back(nbr);
-                }
-            }
-            current += 1;
+        if i_size < j_size {
+            self.parents[i_rep] = j_rep;
+            self.sizes[j_rep] += self.sizes[i_rep];
+        } else {
+            self.parents[j_rep] = i_rep;
+            self.sizes[i_rep] += self.sizes[j_rep];
         }
-
-        map.into_iter()
-            .into_group_map_by(|(_, component)| *component)
-            .values()
-            .map(|group| group.iter().map(|&(node, _)| node).collect())
-            .collect()
     }
 }
 
