@@ -73,7 +73,7 @@ impl UnionFind {
     }
 
     fn is_connected(&self) -> bool {
-        self.sizes.iter().any(|&s| s == self.size)
+        self.sizes.contains(&self.size)
     }
 
     fn find(&mut self, i: usize) -> usize {
