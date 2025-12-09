@@ -17,7 +17,7 @@ pub fn part1(input: &str) -> Result<String, anyhow::Error> {
 
     fn is_invalid_id(n: u64) -> bool {
         let length = n.ilog10() + 1;
-        if length % 2 != 0 {
+        if !length.is_multiple_of(2) {
             return false;
         }
 
@@ -45,7 +45,8 @@ pub fn part2(input: &str) -> Result<String, anyhow::Error> {
 
     fn is_invalid_id(n: u64) -> bool {
         let length = n.ilog10() + 1;
-        (1..=(length / 2)).any(|size| length % size == 0 && chunk_number(n, size).all_equal())
+        (1..=(length / 2))
+            .any(|size| length.is_multiple_of(size) && chunk_number(n, size).all_equal())
     }
 
     Ok(ranges.to_string())
