@@ -24,10 +24,10 @@ pub fn part2(input: &str) -> Result<String, anyhow::Error> {
         .into_result()
         .map_err(|e| anyhow::anyhow!("Failed to parse squares: {e:?}"))?;
 
-    let lines: Vec<(&I64Vec2, &I64Vec2)> = squares.iter().circular_tuple_windows().collect();
+    let lines: Vec<(I64Vec2, I64Vec2)> = squares.iter().copied().circular_tuple_windows().collect();
 
     let result = squares
-        .iter()
+        .into_iter()
         .tuple_combinations()
         .filter(|(a, b)| {
             lines.iter().all(|(start, end)| {
