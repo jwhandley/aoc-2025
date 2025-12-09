@@ -7,6 +7,7 @@ edition = "2024"
 anyhow = "1.0.100"
 chumsky = "0.11.2"
 clap = { version = "4.5.53", features = ["derive"] }
+geo = "0.32.0"
 glam = "0.30.9"
 itertools = "0.14.0"
 rayon = "1.11.0"
