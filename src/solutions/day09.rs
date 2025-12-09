@@ -1,5 +1,5 @@
 use chumsky::{prelude::*, text::newline};
-use geo::{Contains, Coord, LineString, Polygon, Rect, coord};
+use glam::I64Vec2;
 use itertools::Itertools;
 
 pub fn part1(input: &str) -> Result<String, anyhow::Error> {
@@ -11,11 +11,8 @@ pub fn part1(input: &str) -> Result<String, anyhow::Error> {
     let result = squares
         .into_iter()
         .tuple_combinations()
-        .map(|(a, b)| {
-            let diff = a - b;
-            (diff.x.abs() + 1.) * (diff.y.abs() + 1.)
-        })
-        .max_by(|a, b| a.partial_cmp(b).unwrap())
+        .map(|(a, b)| (a.x.abs_diff(b.x) + 1) * (a.y.abs_diff(b.y) + 1))
+        .max()
         .unwrap();
 
     Ok(result.to_string())
@@ -27,28 +24,29 @@ pub fn part2(input: &str) -> Result<String, anyhow::Error> {
         .into_result()
         .map_err(|e| anyhow::anyhow!("Failed to parse squares: {e:?}"))?;
 
-    let polygon = Polygon::new(LineString::new(squares.clone()), vec![]);
+    let lines: Vec<(&I64Vec2, &I64Vec2)> = squares.iter().circular_tuple_windows().collect();
 
     let result = squares
         .iter()
         .tuple_combinations()
-        .filter_map(|(a, b)| {
-            let rect = Rect::new(*a, *b);
+        .filter(|(a, b)| {
+            lines.iter().all(|(start, end)| {
+                let left = a.x.max(b.x) <= start.x.min(end.x);
+                let right = a.x.min(b.x) >= start.x.max(end.x);
+                let below = a.y.max(b.y) <= start.y.min(end.y);
+                let above = a.y.min(b.y) >= start.y.max(end.y);
 
-            if polygon.contains(&rect) {
-                Some(rect)
-            } else {
-                None
-            }
+                left || right || below || above
+            })
         })
-        .map(|r| (r.width() + 1.) * (r.height() + 1.))
-        .max_by(|a, b| a.partial_cmp(b).unwrap())
+        .map(|(a, b)| (a.x.abs_diff(b.x) + 1) * (a.y.abs_diff(b.y) + 1))
+        .max()
         .unwrap();
 
     Ok(result.to_string())
 }
 
-fn squares<'src>() -> impl Parser<'src, &'src str, Vec<Coord>> {
+fn squares<'src>() -> impl Parser<'src, &'src str, Vec<I64Vec2>> {
     text::int(10)
         .then_ignore(just(','))
         .then(text::int(10))
@@ -56,7 +54,7 @@ fn squares<'src>() -> impl Parser<'src, &'src str, Vec<Coord>> {
             let x = a.parse().unwrap();
             let y = b.parse().unwrap();
 
-            coord! {x: x, y: y}
+            I64Vec2::new(x, y)
         })
         .separated_by(newline())
         .collect()
