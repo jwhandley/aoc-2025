@@ -19,7 +19,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn part1_test() {}
+    fn part1_test() -> anyhow::Result<()> {
+        Ok(())
+    }
 }
 " > "src/solutions/day$1.rs"
 
