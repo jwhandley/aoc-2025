@@ -16,27 +16,21 @@ pub fn part1(input: &str) -> Result<String, anyhow::Error> {
 
 fn solve(target: usize, options: &[usize]) -> usize {
     let mut q = VecDeque::new();
-    let used = vec![false; options.len()];
-    q.push_back((target, used, 0));
+    q.push_back((target, 0));
 
     let mut seen = HashSet::new();
 
-    while let Some((current, used, n)) = q.pop_front() {
+    while let Some((current, n)) = q.pop_front() {
         if current == 0 {
             return n;
         }
 
-        if !seen.insert((current, used.clone())) {
+        if !seen.insert((current, n)) {
             continue;
         }
 
-        for i in 0..options.len() {
-            if !used[i] {
-                let next = current ^ options[i];
-                let mut next_used = used.clone();
-                next_used[i] = true;
-                q.push_back((next, next_used, n + 1));
-            }
+        for option in options {
+            q.push_back((current ^ option, n + 1));
         }
     }
 
