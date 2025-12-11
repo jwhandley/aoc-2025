@@ -76,26 +76,26 @@ impl Graph {
         self.adj[node].iter().copied()
     }
 
-    fn count_paths_memo(&self, from: usize, to: usize, memo: &mut HashMap<usize, usize>) -> usize {
+    fn count_paths_memo(&self, from: usize, to: usize, memo: &mut Vec<usize>) -> usize {
         if from == to {
             return 1;
         }
 
-        if let Some(&result) = memo.get(&from) {
-            return result;
+        if memo[from] != usize::MAX {
+            return memo[from];
         }
 
         let mut result = 0;
         for nbr in self.neighbors(from) {
             result += self.count_paths_memo(nbr, to, memo);
         }
-        memo.insert(from, result);
+        memo[from] = result;
 
         result
     }
 
     fn count_paths(&self, from: usize, to: usize) -> usize {
-        let mut memo = HashMap::new();
+        let mut memo = vec![usize::MAX; self.adj.len()];
         self.count_paths_memo(from, to, &mut memo)
     }
 }
