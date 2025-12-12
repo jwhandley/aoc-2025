@@ -19,6 +19,8 @@ fn main() -> Result<(), anyhow::Error> {
     match args.command {
         Action::Day { day } => solve_day(day),
         Action::All => {
+            println!("Solving all days");
+            let now = std::time::Instant::now();
             for day in 1..=25 {
                 if let Ok((part1, part2)) = solution_for(day) {
                     let input = std::fs::read_to_string(format!("./inputs/{day:02}.txt"))
@@ -36,6 +38,8 @@ fn main() -> Result<(), anyhow::Error> {
                     println!("--------------------");
                 }
             }
+
+            println!("Solved all in {:>5}", format!("{:.02?}", now.elapsed()));
 
             Ok(())
         }
